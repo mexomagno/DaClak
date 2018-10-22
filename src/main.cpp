@@ -2,25 +2,29 @@
 // Created by mexomagno on 21-10-18.
 //
 
-#import <Arduino.h>
-#import <SoftwareSerial.h>
-#import <string.h>
+#include <Arduino.h>
+#include <SoftwareSerial.h>
+#include <string.h>
+#include <Time.h>
 
-SoftwareSerial *bt_module = new SoftwareSerial(2, 3);
-
+// SoftwareSerial *bt_module = new SoftwareSerial(2, 3);
 
 void setup(){
-    pinMode(13, OUTPUT);
+    //pinMode(13, OUTPUT);
     Serial.begin(9600);
     Serial.println("Started serial");
-    bt_module->begin(9600);
+}
+
+void printTime(){
+    Serial.print("Time: ");
+    Serial.print(hour());
+    Serial.print(":");
+    Serial.print(minute());
+    Serial.print(":");
+    Serial.println(second());
 }
 
 void loop(){
-    while (bt_module->available()){
-        Serial.write(bt_module->read());
-    }
-    while (Serial.available()){
-        bt_module->write(Serial.read());
-    }
+    delay(1000);
+    printTime();
 }

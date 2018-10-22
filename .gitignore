@@ -3,3 +3,4 @@
 CMakeListsPrivate.txt
 tests
 .idea
+cmake-build-debug

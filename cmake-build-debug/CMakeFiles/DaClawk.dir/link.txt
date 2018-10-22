@@ -1,0 +1,1 @@
+/home/mexomagno/.platformio/packages/toolchain-atmelavr/bin/avr-g++  -g  -rdynamic CMakeFiles/DaClawk.dir/src/main.cpp.o  -o DaClawk 

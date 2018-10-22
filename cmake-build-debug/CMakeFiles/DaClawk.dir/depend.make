@@ -12,6 +12,7 @@ CMakeFiles/DaClawk.dir/src/main.cpp.o: /home/mexomagno/.platformio/packages/fram
 CMakeFiles/DaClawk.dir/src/main.cpp.o: /home/mexomagno/.platformio/packages/framework-arduinoavr/cores/arduino/WCharacter.h
 CMakeFiles/DaClawk.dir/src/main.cpp.o: /home/mexomagno/.platformio/packages/framework-arduinoavr/cores/arduino/WString.h
 CMakeFiles/DaClawk.dir/src/main.cpp.o: /home/mexomagno/.platformio/packages/framework-arduinoavr/cores/arduino/binary.h
+CMakeFiles/DaClawk.dir/src/main.cpp.o: /home/mexomagno/.platformio/packages/framework-arduinoavr/libraries/__cores__/arduino/SoftwareSerial/src/SoftwareSerial.h
 CMakeFiles/DaClawk.dir/src/main.cpp.o: /home/mexomagno/.platformio/packages/framework-arduinoavr/variants/standard/pins_arduino.h
 CMakeFiles/DaClawk.dir/src/main.cpp.o: /home/mexomagno/.platformio/packages/toolchain-atmelavr/avr/include/avr/common.h
 CMakeFiles/DaClawk.dir/src/main.cpp.o: /home/mexomagno/.platformio/packages/toolchain-atmelavr/avr/include/avr/eeprom.h

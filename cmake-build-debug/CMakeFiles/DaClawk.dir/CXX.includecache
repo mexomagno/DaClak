@@ -100,6 +100,12 @@ avr/pgmspace.h
 
 /home/mexomagno/.platformio/packages/framework-arduinoavr/cores/arduino/binary.h
 
+/home/mexomagno/.platformio/packages/framework-arduinoavr/libraries/__cores__/arduino/SoftwareSerial/src/SoftwareSerial.h
+inttypes.h
+-
+Stream.h
+-
+
 /home/mexomagno/.platformio/packages/framework-arduinoavr/variants/standard/pins_arduino.h
 avr/pgmspace.h
 -
@@ -1492,5 +1498,9 @@ sys/_types.h
 
 /home/mexomagno/Workspace/Arduino/DaClawk/src/main.cpp
 Arduino.h
+-
+SoftwareSerial.h
+-
+string.h
 -
 

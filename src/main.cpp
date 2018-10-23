@@ -8,13 +8,8 @@
 #include <TimeAlarms.h>
 
 #define N_DIGITS 6
-double tz_offset = 0;
 
-//void print(char *, args**){
-//    if (!Serial.availableForWrite())
-//        return;
-//
-//}
+double tz_offset = 0;
 
 class ClockDisplay{
     /**
@@ -23,13 +18,26 @@ class ClockDisplay{
 public:
     ClockDisplay(unsigned char, unsigned char, unsigned char);
     void showTime();
+    void showDate();
+    void showText(char []);
+    void update();  // TODO: Call internally
 private:
     unsigned char input_pin;
     unsigned char shift_pin;
     unsigned char latch_pin;
-    char displayed_digits [N_DIGITS+1];
-    void setDigits(char []);
+    char displayed_digits [N_DIGITS+1];  // Digits that should be displayed on next update
+    bool is_showing_text = false;
+    bool is_showing_date = false;
+    char text_to_show[256];  // Text to display
+    unsigned long last_text_millis = 0;
+    unsigned long last_date_millis = 0;
+    const unsigned int TEXT_SCROLL_DELAY = 500;
+    const unsigned int DATE_DELAY = 2000;
+    bool checkTextRotation();
+
 };
+
+
 ClockDisplay::ClockDisplay(unsigned char input_pin, unsigned char shift_pin, unsigned char latch_pin) {
     this->input_pin = input_pin;
     this->shift_pin = shift_pin;
@@ -38,7 +46,8 @@ ClockDisplay::ClockDisplay(unsigned char input_pin, unsigned char shift_pin, uns
     pinMode(input_pin, OUTPUT);
     pinMode(shift_pin, OUTPUT);
     pinMode(latch_pin, OUTPUT);
-    setDigits((char*)("000000"));
+    strcpy(displayed_digits, "000000");
+    strcpy(text_to_show, "");
 }
 
 void ClockDisplay::showTime() {
@@ -46,24 +55,91 @@ void ClockDisplay::showTime() {
     // Time to digits
     char str_time[7];sprintf(str_time, "%02d%02d%02d", hour(t_now), minute(t_now), second(t_now));
     // Set digits and draw
-    setDigits(str_time);
-    char st[30];sprintf(st, "Display: %s", str_time);
-    Serial.println(st);
+    strcpy(displayed_digits, str_time);
+}
+
+void ClockDisplay::showDate() {
+    time_t t_now = now() + (time_t)(3600*tz_offset);
+    // Time to digits
+    char str_date[7];sprintf(str_date,"%02d%02d%02d", day(t_now), month(t_now), year(t_now)%1000);
+    strcpy(displayed_digits, str_date);
+    is_showing_date = true;
 }
 
 /**
- * Sets and draws the digits in the display
- * @param s : Array of characters to show
+ * Displays some text as a sliding animation
+ *
+ * TODO: Don't block!
+ * @param text
  */
-void ClockDisplay::setDigits(char * s) {
-    // Update digits
-    strcpy(displayed_digits, s);
-    // Draw digits
-    for (unsigned int i=0; i < strlen(displayed_digits); i++){
-        char st [30]; sprintf(st, "Digit %d: %c", i, displayed_digits[i]);
-        Serial.println(st);
-    }
+void ClockDisplay::showText(char text[]) {
+    // Store text
+    strcpy(text_to_show, text);
+    is_showing_text = true;
 }
+
+/**
+ * Draws current digits into the display
+ */
+void ClockDisplay::update() {
+    // Check if text is being displayed yet
+    if (checkTextRotation()){
+        // Text still being displayed, stop updating
+        return;
+    }
+
+    // Check if is showing date
+    if (is_showing_date){
+        unsigned long now = millis();
+        if (last_date_millis == 0)
+            last_date_millis = now;
+        if (now - last_date_millis < DATE_DELAY){
+            last_date_millis = now - (now - last_date_millis - DATE_DELAY);
+            showDate();
+            return;
+        } else {
+            // Stop showing date
+            is_showing_date = false;
+        }
+    }
+
+    // Draw time
+    // TODO: Draw with delay
+    showTime();
+    for (unsigned int i=0; i < strlen(displayed_digits); i++){
+        char st [30]; sprintf(st, "%c ", displayed_digits[i]);
+        Serial.print(st);
+    }
+    Serial.println();
+}
+
+/**
+ * Checks if text must be rotated, and does it.
+ * @return true if text is still displayed, false otherwise
+ */
+bool ClockDisplay::checkTextRotation() {
+    if (!is_showing_text)
+        return false;
+    // Check if text should be rotated
+    unsigned long now = millis();
+    if (last_text_millis == 0)
+        last_text_millis = now;
+    if (now - last_text_millis > TEXT_SCROLL_DELAY){
+        last_text_millis = now - (now - last_text_millis - TEXT_SCROLL_DELAY);
+        // Rotate chars
+        for (int i = 0; text_to_show[i] != '\0' && i < N_DIGITS + 1; i++){
+            text_to_show[i] = text_to_show [i+1];
+        }
+        if (strcmp(text_to_show, "") == 0){
+            // Finished text scroll
+            is_showing_text = false;
+        }
+        // Put next chars to display
+        strncpy(text_to_show, displayed_digits, N_DIGITS + 1);
+    }
+    return is_showing_text;
+}
+ClockDisplay display(4, 5, 6);
 
 class BTConnection{
     /**
@@ -108,6 +184,7 @@ boolean BTConnection::parseCommand(char *command) {
         char s [128];
         sprintf(s, "Time: %02d:%02d:%02d%s\n", hour(t), minute(t), second(t), tz_offset == 0 ? "" : zo);
         this->send(s);
+        display.showTime();
         return true;
     }
     // Get pretty date
@@ -122,6 +199,7 @@ boolean BTConnection::parseCommand(char *command) {
         char s [128];
         sprintf(s, "Date: %d/%d/%d%s\n", day(t), month(t), year(t), tz_offset == 0 ? "" : zo);
         this->send(s);
+        display.showDate();
         return true;
     }
     // Get timestamp
@@ -161,6 +239,10 @@ boolean BTConnection::parseCommand(char *command) {
         Serial.println(tz_offset);
         return true;
     }
+    else {
+        // Display command as text
+        display.showText(command);
+    }
     return false;
 }
 
@@ -190,21 +272,20 @@ boolean BTConnection::send(char *COMMAND) {
 }
 
 unsigned long baud_rate = 9600;
-BTConnection *bt_connection = new BTConnection(2, 3, baud_rate);
-ClockDisplay *display = new ClockDisplay(4, 5, 6);
+BTConnection bt_connection(2, 3, baud_rate);
 
 void setup(){
     // Start serial for debugging
     Serial.begin(baud_rate);
     Serial.println("Started serial");
     // Start bt module
-    bt_connection->begin();
+    bt_connection.begin();
     Serial.print("Started BT module. Baud Rate: ");
     Serial.println(baud_rate);
 }
 
 void loop(){
-//    bt_connection->listen();
-    display->showTime();
-    delay(500);
+    bt_connection.listen();
+    display.update();  // TODO: Update in non invasive timer interrupt
+    delay(100);
 }

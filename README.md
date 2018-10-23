@@ -58,6 +58,5 @@ Possible actions:
 - Configurable
 	* Baudrate
 	* Brightness
-	* 
 - Brillo acorde con luz ambiente
 - 

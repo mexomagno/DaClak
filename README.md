@@ -1,6 +1,6 @@
-# DaClock
+# DaClak
 
-Homemade wall clock
+Homemade wall clock. Just for fun. And an excuse to use some of the stuff I have lying around.
 
 ## How it works
 
@@ -15,11 +15,19 @@ Reccomended setup:
 
 Relevant info can be seen [here](http://www.martyncurrey.com/arduino-and-hc-06-zs-040/)
 
+More info:
+| Property | Value |
+| -------- | ----- |
+| FW Version | linvorV1.8 |
+| name | DaClawk |
+| pin | the one for wifi |
+
 ## Features
 
 ## TODO
 - Configurable desde teléfono (Bluetooth)
 - Da la hora (accurate)
+- Da la fecha
 - Ahorro energía
 - Funciona a pilas
 - Vista de estado batería

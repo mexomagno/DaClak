@@ -28,8 +28,8 @@ private:
     bool is_showing_text = false;
     bool is_showing_date = false;
     char text_to_show[256];  // Text to display
-    unsigned long last_text_millis = 0;
-    unsigned long date_millis = 0;
+    unsigned long last_text_millis;
+    unsigned long date_millis;
     const unsigned int TEXT_SCROLL_DELAY = 300;
     const unsigned int DATE_DELAY = 2000;
     void putDate();
@@ -80,6 +80,7 @@ void ClockDisplay::showDate() {
     putDate();
     is_showing_date = true;
     date_millis = 0;
+    is_showing_text = false;
 }
 
 /**
@@ -92,6 +93,8 @@ void ClockDisplay::showText(char text[]) {
     // Store text
     strcpy(text_to_show, text);
     is_showing_text = true;
+    last_text_millis = 0;
+    is_showing_date = false;
 }
 
 /**

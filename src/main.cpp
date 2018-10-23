@@ -17,7 +17,6 @@ class ClockDisplay{
      */
 public:
     ClockDisplay(unsigned char, unsigned char, unsigned char);
-    void showTime();
     void showDate();
     void showText(char []);
     void update();  // TODO: Call internally
@@ -30,9 +29,11 @@ private:
     bool is_showing_date = false;
     char text_to_show[256];  // Text to display
     unsigned long last_text_millis = 0;
-    unsigned long last_date_millis = 0;
+    unsigned long date_millis = 0;
     const unsigned int TEXT_SCROLL_DELAY = 500;
     const unsigned int DATE_DELAY = 2000;
+    void putDate();
+    void putTime();
     bool checkTextRotation();
 
 };
@@ -50,7 +51,7 @@ ClockDisplay::ClockDisplay(unsigned char input_pin, unsigned char shift_pin, uns
     strcpy(text_to_show, "");
 }
 
-void ClockDisplay::showTime() {
+void ClockDisplay::putTime() {
     time_t t_now = now() + (time_t)(3600*tz_offset);
     // Time to digits
     char str_time[7];sprintf(str_time, "%02d%02d%02d", hour(t_now), minute(t_now), second(t_now));
@@ -59,11 +60,9 @@ void ClockDisplay::showTime() {
 }
 
 void ClockDisplay::showDate() {
-    time_t t_now = now() + (time_t)(3600*tz_offset);
-    // Time to digits
-    char str_date[7];sprintf(str_date,"%02d%02d%02d", day(t_now), month(t_now), year(t_now)%1000);
-    strcpy(displayed_digits, str_date);
+    putDate();
     is_showing_date = true;
+    date_millis = 0;
 }
 
 /**
@@ -85,27 +84,22 @@ void ClockDisplay::update() {
     // Check if text is being displayed yet
     if (checkTextRotation()){
         // Text still being displayed, stop updating
-        return;
-    }
-
-    // Check if is showing date
-    if (is_showing_date){
+    } else if (is_showing_date){ // Check if is showing date
         unsigned long now = millis();
-        if (last_date_millis == 0)
-            last_date_millis = now;
-        if (now - last_date_millis < DATE_DELAY){
-            last_date_millis = now - (now - last_date_millis - DATE_DELAY);
-            showDate();
-            return;
+        if (date_millis == 0)
+            date_millis = now;
+        if (now - date_millis < DATE_DELAY){
+            // Date still must be shown
+            //date_millis = now - (now - date_millis - DATE_DELAY);
+            putDate();
         } else {
             // Stop showing date
             is_showing_date = false;
         }
+    } else {
+        putTime();
     }
-
-    // Draw time
     // TODO: Draw with delay
-    showTime();
     for (unsigned int i=0; i < strlen(displayed_digits); i++){
         char st [30]; sprintf(st, "%c ", displayed_digits[i]);
         Serial.print(st);
@@ -139,6 +133,14 @@ bool ClockDisplay::checkTextRotation() {
     }
     return is_showing_text;
 }
+
+void ClockDisplay::putDate() {
+    time_t t_now = now() + (time_t)(3600*tz_offset);
+    // Time to digits
+    char str_date[7];sprintf(str_date,"%02d%02d%02d", day(t_now), month(t_now), year(t_now)%1000);
+    strcpy(displayed_digits, str_date);
+}
+
 ClockDisplay display(4, 5, 6);
 
 class BTConnection{
@@ -184,7 +186,6 @@ boolean BTConnection::parseCommand(char *command) {
         char s [128];
         sprintf(s, "Time: %02d:%02d:%02d%s\n", hour(t), minute(t), second(t), tz_offset == 0 ? "" : zo);
         this->send(s);
-        display.showTime();
         return true;
     }
     // Get pretty date

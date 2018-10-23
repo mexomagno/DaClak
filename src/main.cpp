@@ -30,10 +30,11 @@ private:
     char text_to_show[256];  // Text to display
     unsigned long last_text_millis = 0;
     unsigned long date_millis = 0;
-    const unsigned int TEXT_SCROLL_DELAY = 500;
+    const unsigned int TEXT_SCROLL_DELAY = 300;
     const unsigned int DATE_DELAY = 2000;
     void putDate();
     void putTime();
+    void putText();
     bool checkTextRotation();
 
 };
@@ -59,6 +60,22 @@ void ClockDisplay::putTime() {
     strcpy(displayed_digits, str_time);
 }
 
+/**
+ * Puts the current characters of the text to show
+ */
+void ClockDisplay::putText(){
+    for (unsigned char i = 0; i < N_DIGITS; i++){
+        if (text_to_show[i] != '\0')
+            displayed_digits[i] = text_to_show[i];
+        else {
+            // Fill with spaces
+            for (unsigned char j = i; j < N_DIGITS ; j++){
+                displayed_digits[j] = ' ';
+            }
+            break;
+        }
+    }
+}
 void ClockDisplay::showDate() {
     putDate();
     is_showing_date = true;
@@ -114,23 +131,25 @@ void ClockDisplay::update() {
 bool ClockDisplay::checkTextRotation() {
     if (!is_showing_text)
         return false;
-    // Check if text should be rotated
     unsigned long now = millis();
-    if (last_text_millis == 0)
+    if (last_text_millis == 0) {
         last_text_millis = now;
+    }
+    // Check if text should be rotated
     if (now - last_text_millis > TEXT_SCROLL_DELAY){
         last_text_millis = now - (now - last_text_millis - TEXT_SCROLL_DELAY);
         // Rotate chars
-        for (int i = 0; text_to_show[i] != '\0' && i < N_DIGITS + 1; i++){
+        for (int i = 0; i < strlen(text_to_show); i++){
             text_to_show[i] = text_to_show [i+1];
+            if (text_to_show[i] == '\0')
+                break;
         }
         if (strcmp(text_to_show, "") == 0){
             // Finished text scroll
             is_showing_text = false;
         }
-        // Put next chars to display
-        strncpy(text_to_show, displayed_digits, N_DIGITS + 1);
     }
+    putText();
     return is_showing_text;
 }
 

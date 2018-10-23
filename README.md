@@ -19,7 +19,7 @@ More info:
 | Property | Value |
 | -------- | ----- |
 | FW Version | linvorV1.8 |
-| name | DaClawk |
+| name | DaClak |
 | pin | the one for wifi |
 
 ## Features

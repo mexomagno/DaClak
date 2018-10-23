@@ -7,19 +7,63 @@
 #include <Time.h>
 #include <TimeAlarms.h>
 
+#define N_DIGITS 6
 double tz_offset = 0;
 
-class TimeTracker{
+//void print(char *, args**){
+//    if (!Serial.availableForWrite())
+//        return;
+//
+//}
+
+class ClockDisplay{
+    /**
+     * Represents the clock display. Provides methods to display internal state
+     */
 public:
-    static char [] getTimeStr();
-    static char [] getDateStr();
-    static char [] getOffsetStr();
-    static long int getTime();
-    static void setOffset(double offset);
-    static void setTime(double timestamp);
+    ClockDisplay(unsigned char, unsigned char, unsigned char);
+    void showTime();
 private:
-    static double tz_offset;
+    unsigned char input_pin;
+    unsigned char shift_pin;
+    unsigned char latch_pin;
+    char displayed_digits [N_DIGITS+1];
+    void setDigits(char []);
 };
+ClockDisplay::ClockDisplay(unsigned char input_pin, unsigned char shift_pin, unsigned char latch_pin) {
+    this->input_pin = input_pin;
+    this->shift_pin = shift_pin;
+    this->latch_pin = latch_pin;
+    // Enable pins
+    pinMode(input_pin, OUTPUT);
+    pinMode(shift_pin, OUTPUT);
+    pinMode(latch_pin, OUTPUT);
+    setDigits((char*)("000000"));
+}
+
+void ClockDisplay::showTime() {
+    time_t t_now = now() + (time_t)(3600*tz_offset);
+    // Time to digits
+    char str_time[7];sprintf(str_time, "%02d%02d%02d", hour(t_now), minute(t_now), second(t_now));
+    // Set digits and draw
+    setDigits(str_time);
+    char st[30];sprintf(st, "Display: %s", str_time);
+    Serial.println(st);
+}
+
+/**
+ * Sets and draws the digits in the display
+ * @param s : Array of characters to show
+ */
+void ClockDisplay::setDigits(char * s) {
+    // Update digits
+    strcpy(displayed_digits, s);
+    // Draw digits
+    for (unsigned int i=0; i < strlen(displayed_digits); i++){
+        char st [30]; sprintf(st, "Digit %d: %c", i, displayed_digits[i]);
+        Serial.println(st);
+    }
+}
 
 class BTConnection{
     /**
@@ -83,7 +127,7 @@ boolean BTConnection::parseCommand(char *command) {
     // Get timestamp
     if (strcmp(command, "GT") == 0){
         char s [128];
-        sprintf(s, "%ld", (long int)now());
+        sprintf(s, "%ld\n", (long int)now());
         this->send(s);
         return true;
     }
@@ -92,7 +136,7 @@ boolean BTConnection::parseCommand(char *command) {
         char str_offset[15];
         dtostrf(tz_offset, 1, 1, str_offset);
         char s [128];
-        sprintf(s, "%s", str_offset);
+        sprintf(s, "%s\n", str_offset);
         this->send(s);
         return true;
     }
@@ -119,7 +163,6 @@ boolean BTConnection::parseCommand(char *command) {
     }
     return false;
 }
-
 
 void BTConnection::listen() {
     int index = 0;
@@ -148,16 +191,20 @@ boolean BTConnection::send(char *COMMAND) {
 
 unsigned long baud_rate = 9600;
 BTConnection *bt_connection = new BTConnection(2, 3, baud_rate);
+ClockDisplay *display = new ClockDisplay(4, 5, 6);
 
 void setup(){
-    //pinMode(13, OUTPUT);
+    // Start serial for debugging
     Serial.begin(baud_rate);
     Serial.println("Started serial");
+    // Start bt module
     bt_connection->begin();
     Serial.print("Started BT module. Baud Rate: ");
     Serial.println(baud_rate);
 }
 
 void loop(){
-    bt_connection->listen();
+//    bt_connection->listen();
+    display->showTime();
+    delay(500);
 }

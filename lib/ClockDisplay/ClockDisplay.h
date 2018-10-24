@@ -18,6 +18,7 @@ public:
     ClockDisplay(unsigned char, unsigned char, unsigned char);
     void showDate();
     void showText(char []);
+    void setTzOffset(double);
     void update();  // TODO: Call internally
 private:
     unsigned char input_pin;
@@ -26,7 +27,7 @@ private:
     char displayed_digits [N_DIGITS+1];  // Digits that should be displayed on next update
     bool is_showing_text = false;
     bool is_showing_date = false;
-    const double tz_offset = -3.0;
+    double tz_offset;
     char text_to_show[256];  // Text to display
     unsigned long last_text_millis;
     unsigned long date_millis;

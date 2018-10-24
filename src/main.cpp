@@ -10,7 +10,7 @@
 
 double tz_offset = 0;
 unsigned long baud_rate = 9600;
-//ClockDisplay display(4, 5, 6);
+ClockDisplay display(4, 5, 6);
 BTConnection bt_connection(2, 3, baud_rate);
 
 bool parseCommand(char *command){
@@ -40,7 +40,7 @@ bool parseCommand(char *command){
         char s [20];
         sprintf(s, "Date: %d/%d/%d%s\n", day(t), month(t), year(t), tz_offset == 0 ? "" : zo);
         bt_connection.send(s);
-//        display.showDate();
+        display.showDate();
         return true;
     }
     // Get timestamp
@@ -76,13 +76,14 @@ bool parseCommand(char *command){
         command[1] = ' ';
         char *endptr;
         tz_offset = strtod(command, &endptr);
+        display.setTzOffset(tz_offset);
         Serial.print("Timezone offset: ");
         Serial.println(tz_offset);
         return true;
     }
     else {
         // Display command as text
-//        display.showText(command);
+        display.showText(command);
     }
     return false;
 }
@@ -99,7 +100,7 @@ void setup(){
 
 void loop(){
     bt_connection.listen(&parseCommand);
-//    display.update();  // TODO: Update in non invasive timer interrupt
+    display.update();  // TODO: Update in non invasive timer interrupt
     delay(100);
 }
 

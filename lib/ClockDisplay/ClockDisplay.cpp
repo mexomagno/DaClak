@@ -8,12 +8,17 @@ ClockDisplay::ClockDisplay(unsigned char input_pin, unsigned char shift_pin, uns
     this->input_pin = input_pin;
     this->shift_pin = shift_pin;
     this->latch_pin = latch_pin;
+    this->tz_offset = 0.0;
     // Enable pins
     pinMode(input_pin, OUTPUT);
     pinMode(shift_pin, OUTPUT);
     pinMode(latch_pin, OUTPUT);
     strcpy(displayed_digits, "000000");
     strcpy(text_to_show, "");
+}
+
+void ClockDisplay::setTzOffset(double new_offset) {
+    this->tz_offset = new_offset;
 }
 
 void ClockDisplay::putTime() {

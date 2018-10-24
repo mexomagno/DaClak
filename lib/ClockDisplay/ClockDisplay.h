@@ -26,6 +26,7 @@ private:
     char displayed_digits [N_DIGITS+1];  // Digits that should be displayed on next update
     bool is_showing_text = false;
     bool is_showing_date = false;
+    const double tz_offset = -3.0;
     char text_to_show[256];  // Text to display
     unsigned long last_text_millis;
     unsigned long date_millis;

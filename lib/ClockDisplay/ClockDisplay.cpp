@@ -8,7 +8,6 @@ ClockDisplay::ClockDisplay(unsigned char input_pin, unsigned char shift_pin, uns
     this->input_pin = input_pin;
     this->shift_pin = shift_pin;
     this->latch_pin = latch_pin;
-    this->tz_offset = tz_offset;
     // Enable pins
     pinMode(input_pin, OUTPUT);
     pinMode(shift_pin, OUTPUT);

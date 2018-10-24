@@ -19,6 +19,8 @@ public:
     void showDate();
     void showText(char []);
     void setTzOffset(double);
+    void setTextDelay(unsigned int);
+    void setDateDelay(unsigned int);
     void update();  // TODO: Call internally
 private:
     unsigned char input_pin;
@@ -31,8 +33,8 @@ private:
     char text_to_show[256];  // Text to display
     unsigned long last_text_millis;
     unsigned long date_millis;
-    const unsigned int TEXT_SCROLL_DELAY = 300;
-    const unsigned int DATE_DELAY = 2000;
+    unsigned int TEXT_SCROLL_DELAY = 300;
+    unsigned int DATE_DELAY = 2000;
     void putDate();
     void putTime();
     void putText();

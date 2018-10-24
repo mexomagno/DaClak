@@ -13,6 +13,7 @@ unsigned long baud_rate = 9600;
 ClockDisplay display(4, 5, 6);
 BTConnection bt_connection(2, 3, baud_rate);
 
+
 bool parseCommand(char *command){
     // get pretty time
     if (strcmp(command, "TIME") == 0) {
@@ -81,9 +82,33 @@ bool parseCommand(char *command){
         Serial.println(tz_offset);
         return true;
     }
-    else {
-        // Display command as text
-        display.showText(command);
+    // Show text
+    if (command[0] == 'T' && command[1] == 'X'){
+        char txt[256];
+        strncpy(txt, command + 2, strlen(command)-1);
+        display.showText(txt);
+    }
+    // Set text speed
+    if (command[0] == 'S' && command[1] == 'X'){
+        command[0] = ' ';
+        command[1] = ' ';
+        char *endptr;
+        auto text_delay = (unsigned int)strtol(command, &endptr, 10);
+        display.setTextDelay(text_delay);
+        Serial.print("Text delay: ");
+        Serial.println(text_delay);
+        return true;
+    }
+    // Set date delay
+    if (command[0] == 'S' && command[1] == 'D'){
+        command[0] = ' ';
+        command[1] = ' ';
+        char *endptr;
+        auto date_delay = (unsigned int)strtol(command, &endptr, 10);
+        display.setDateDelay(date_delay);
+        Serial.print("Date delay: ");
+        Serial.println(date_delay);
+        return true;
     }
     return false;
 }

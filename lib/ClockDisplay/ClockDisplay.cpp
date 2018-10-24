@@ -21,6 +21,14 @@ void ClockDisplay::setTzOffset(double new_offset) {
     this->tz_offset = new_offset;
 }
 
+void ClockDisplay::setTextDelay(unsigned int new_delay) {
+    TEXT_SCROLL_DELAY = new_delay;
+}
+
+void ClockDisplay::setDateDelay(unsigned int new_delay){
+    DATE_DELAY = new_delay;
+}
+
 void ClockDisplay::putTime() {
     time_t t_now = now() + (time_t)(3600*tz_offset);
     // Time to digits

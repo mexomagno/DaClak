@@ -53,10 +53,14 @@ Possible actions:
 - Funciona a pilas
 - Vista de estado batería
 - Despertador arduitunes
-- Muestra mensajes random
+[OK]- Muestra mensajes random
 - Colores?
 - Configurable
 	* Baudrate
 	* Brightness
 - Brillo acorde con luz ambiente
-- 
+- Configuraciones persistentes
+
+
+## Issues
+* El método Schedule requiere una funcion estática, pero el método de cpp para actualizar el texto que ahora estoy haciendo depende de la instancia!

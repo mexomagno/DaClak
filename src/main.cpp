@@ -90,8 +90,16 @@ void ClockDisplay::showDate() {
  * @param text
  */
 void ClockDisplay::showText(char text[]) {
-    // Store text
-    strcpy(text_to_show, text);
+    // Add pading spaces
+    char spaces[N_DIGITS + 1];
+    for (unsigned char i = 0; i < N_DIGITS; i++){
+        spaces[i] = ' ';
+    }
+    spaces[N_DIGITS] = '\0';
+    char new_text[N_DIGITS + strlen(text)];
+    sprintf(new_text, "%s%s", spaces, text);
+    // Put text
+    strcpy(text_to_show, new_text);
     is_showing_text = true;
     last_text_millis = 0;
     is_showing_date = false;
@@ -205,7 +213,7 @@ boolean BTConnection::parseCommand(char *command) {
         char zo[15];
         if (tz_offset != 0)
             sprintf(zo, " (GMT %s%s)", tz_offset > 0 ? "+" : "", str_offset);
-        char s [128];
+        char s [20];
         sprintf(s, "Time: %02d:%02d:%02d%s\n", hour(t), minute(t), second(t), tz_offset == 0 ? "" : zo);
         this->send(s);
         return true;
@@ -219,7 +227,7 @@ boolean BTConnection::parseCommand(char *command) {
         char zo[15];
         if (tz_offset != 0)
             sprintf(zo, " (GMT %s%s)", tz_offset > 0 ? "+" : "", str_offset);
-        char s [128];
+        char s [20];
         sprintf(s, "Date: %d/%d/%d%s\n", day(t), month(t), year(t), tz_offset == 0 ? "" : zo);
         this->send(s);
         display.showDate();
@@ -227,7 +235,7 @@ boolean BTConnection::parseCommand(char *command) {
     }
     // Get timestamp
     if (strcmp(command, "GT") == 0){
-        char s [128];
+        char s [20];
         sprintf(s, "%ld\n", (long int)now());
         this->send(s);
         return true;
@@ -236,7 +244,7 @@ boolean BTConnection::parseCommand(char *command) {
     if (strcmp(command, "GZ") == 0){
         char str_offset[15];
         dtostrf(tz_offset, 1, 1, str_offset);
-        char s [128];
+        char s [8];
         sprintf(s, "%s\n", str_offset);
         this->send(s);
         return true;

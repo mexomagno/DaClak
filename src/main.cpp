@@ -124,6 +124,6 @@ void setup(){
 
 void loop(){
     bt_connection.listen(&parseCommand);
-    display.update();  // TODO: Update in non invasive timer interrupt
+//    display.update();  // TODO: Update in non invasive timer interrupt
     delay(100);
 }

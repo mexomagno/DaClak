@@ -2,7 +2,37 @@
 
 Homemade wall clock. Just for fun. And an excuse to use some of the stuff I have lying around.
 
-## How it works
+## Why?
+
+I was tidying up my bedroom when I noticed lots of electronics stuff laying around collecting dust. So I though... what the heck, lets do something with this. So I decided to make a wall clock
+
+## Features
+* Accurate(ish) time and date
+* Timezone support
+* Bluetooth interface
+* Scrolling text display
+
+## TODO
+[APP MISSING]- Configurable desde teléfono (Bluetooth) 
+[OK]- Da la hora (accurate)
+[OK]- Da la fecha
+- Ahorro energía
+- Funciona a pilas
+- Vista de estado batería
+- Despertador arduitunes
+[OK]- Muestra mensajes random
+- Colores?
+- Configurable
+	* Baudrate
+	* Brightness
+- Brillo acorde con luz ambiente
+- Configuraciones persistentes
+
+## Main parts
+
+### The Display
+
+Segments are controlled via some [shift registers](http://www.ti.com/lit/ds/symlink/sn74hc595.pdf).
 
 ### Bluetooth module:
 This uses an HC-06 bluetooth module.
@@ -23,43 +53,28 @@ More info:
 | pin | the one for wifi |
 
 
+
+
 ## BT Protocol
 
-Every command ends with `\nOK\n` if everything went well.
+On success, `\nOK\n` is returned. Else, `\nERROR\n`.
+
 All commands and responses are text based.
 
-Possible actions:
+Currently the following commands are available:
 
-| Action | Command | Expected response |
-| ------ | ------- | ----------------- |
-| Get human readable time (debug) | `TIME` | The time in HH:MM:SS. If timezone is defined, it includes it too |
-| Get human readable date (debug) | `DATE` | The date in dd/mm/YY format. If timezone defined, included too |
-| Set unix timestamp | `STXXXXXXXXXX` | Confirmation. It should set a specific unix timestamp |
-| Get unix timestamp | `GT` | UTC Unix timestamp in seconds |
-| Set timezone offset | `SZX.Y` | Confirmation. Set timezone offset. Accepts floats, positive and negative |
-| Get timezone offset | `GZ` | Timezone float |
+| Command | Meaning | Response |
+| ------- | -------------------------- | ----------- |
+| `TIME` (debug) | Get human readable date time via BT | Text with formatted date time |
+| `DATE` | Display date in clock, and return date in human readable format via BT | Text with formatted date |
+| `ST` | Set time with UTC unix timestamp in seconds | success response |
+| `GT` | Get time as UTC unix timestamp | UTC timestamp in seconds |
+| `SZ` + `X.Y` | Set timezone offset X.Y (float value) | success response |
+| `GZ` | Get timezone offset | Timezone offset as a float |
+| `TX` + `ABCD` | Show scrolling text "ABCD". Must be shorter than 253 characters | Success response |
+| `SX` + `N` | Set text scroll shift delay in milliseconds. Move characters every N ms | Success response |
+| `SD` + `N` | Display date for N milliseconds | Success response | 
 
-
-
-
-
-## Features
-
-## TODO
-[APP MISSING]- Configurable desde teléfono (Bluetooth) 
-[OK]- Da la hora (accurate)
-[OK]- Da la fecha
-- Ahorro energía
-- Funciona a pilas
-- Vista de estado batería
-- Despertador arduitunes
-[OK]- Muestra mensajes random
-- Colores?
-- Configurable
-	* Baudrate
-	* Brightness
-- Brillo acorde con luz ambiente
-- Configuraciones persistentes
 
 
 ## Issues

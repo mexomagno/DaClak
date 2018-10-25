@@ -4,21 +4,25 @@
 
 #include "ClockDisplay.h"
 
-ClockDisplay::ClockDisplay(unsigned char input_pin, unsigned char shift_pin, unsigned char latch_pin) {
-    this->input_pin = input_pin;
-    this->shift_pin = shift_pin;
-    this->latch_pin = latch_pin;
-    this->tz_offset = 0.0;
+ClockDisplay::ClockDisplay(unsigned char input_p, unsigned char shift_p, unsigned char latch_p){
+    input_pin = input_p;
+    shift_pin = shift_p;
+    latch_pin = latch_p;
+    tz_offset = 0.0;
     // Enable pins
     pinMode(input_pin, OUTPUT);
     pinMode(shift_pin, OUTPUT);
     pinMode(latch_pin, OUTPUT);
     strcpy(displayed_digits, "000000");
     strcpy(text_to_show, "");
+    is_showing_text = false;
+    is_showing_date = false;
+    TEXT_SCROLL_DELAY = DEFAULT_TEXT_SCROLL_DELAY;
+    DATE_DELAY = DEFAULT_DATE_DELAY;
 }
 
 void ClockDisplay::setTzOffset(double new_offset) {
-    this->tz_offset = new_offset;
+    tz_offset = new_offset;
 }
 
 void ClockDisplay::setTextDelay(unsigned int new_delay) {
@@ -29,30 +33,6 @@ void ClockDisplay::setDateDelay(unsigned int new_delay){
     DATE_DELAY = new_delay;
 }
 
-void ClockDisplay::putTime() {
-    time_t t_now = now() + (time_t)(3600*tz_offset);
-    // Time to digits
-    char str_time[7];sprintf(str_time, "%02d%02d%02d", hour(t_now), minute(t_now), second(t_now));
-    // Set digits and draw
-    strcpy(displayed_digits, str_time);
-}
-
-/**
- * Puts the current characters of the text to show
- */
-void ClockDisplay::putText(){
-    for (unsigned char i = 0; i < N_DIGITS; i++){
-        if (text_to_show[i] != '\0')
-            displayed_digits[i] = text_to_show[i];
-        else {
-            // Fill with spaces
-            for (unsigned char j = i; j < N_DIGITS ; j++){
-                displayed_digits[j] = ' ';
-            }
-            break;
-        }
-    }
-}
 void ClockDisplay::showDate() {
     putDate();
     is_showing_date = true;
@@ -82,10 +62,12 @@ void ClockDisplay::showText(char text[]) {
     is_showing_date = false;
 }
 
+
+
 /**
  * Draws current digits into the display
  */
-void ClockDisplay::update() {
+static void ClockDisplay::update() {
     // Check if text is being displayed yet
     if (checkTextRotation()){
         // Text still being displayed, stop updating
@@ -111,17 +93,43 @@ void ClockDisplay::update() {
         Serial.print(st);
     }
     Serial.println();
-    // TEST: Put last digit in segments
-    unsigned char out1, out2;
-    charToSegments(displayed_digits[N_DIGITS - 1], out1, out2);
-    updateSegment(out1, out2);
+    displayDigits();
+}
+
+static void ClockDisplay::putTime() {
+    time_t t_now = now() + (time_t)(3600*tz_offset);
+    // Time to digits
+    char str_time[7];sprintf(str_time, "%02d%02d%02d", hour(t_now), minute(t_now), second(t_now));
+    // Set digits and draw
+    strcpy(displayed_digits, str_time);
+}
+
+static void ClockDisplay::putDate() {
+    time_t t_now = now() + (time_t)(3600*tz_offset);
+    // Time to digits
+    char str_date[7];sprintf(str_date,"%02d%02d%02d", day(t_now), month(t_now), year(t_now)%1000);
+    strcpy(displayed_digits, str_date);
+}
+
+static void ClockDisplay::putText(){
+    for (unsigned char i = 0; i < N_DIGITS; i++){
+        if (text_to_show[i] != '\0')
+            displayed_digits[i] = text_to_show[i];
+        else {
+            // Fill with spaces
+            for (unsigned char j = i; j < N_DIGITS ; j++){
+                displayed_digits[j] = ' ';
+            }
+            break;
+        }
+    }
 }
 
 /**
  * Checks if text must be rotated, and does it.
  * @return true if text is still displayed, false otherwise
  */
-bool ClockDisplay::checkTextRotation() {
+static bool ClockDisplay::checkTextRotation() {
     if (!is_showing_text)
         return false;
     unsigned long now = millis();
@@ -144,13 +152,6 @@ bool ClockDisplay::checkTextRotation() {
     }
     putText();
     return is_showing_text;
-}
-
-void ClockDisplay::putDate() {
-    time_t t_now = now() + (time_t)(3600*tz_offset);
-    // Time to digits
-    char str_date[7];sprintf(str_date,"%02d%02d%02d", day(t_now), month(t_now), year(t_now)%1000);
-    strcpy(displayed_digits, str_date);
 }
 
 /**
@@ -359,6 +360,10 @@ static void ClockDisplay::charToSegments(char c, unsigned char &out1, unsigned c
     }
 }
 
+void ClockDisplay::displayDigits(){
+
+}
+
 void ClockDisplay::updateSegment(unsigned char part1, unsigned char part2) {
     for (unsigned char i = 0; i < 8; i++){
         digitalWrite(input_pin, bitRead(part1, i));
@@ -372,3 +377,42 @@ void ClockDisplay::updateSegment(unsigned char part1, unsigned char part2) {
     digitalWrite(latch_pin, LOW);
     delay(1);
 }
+
+/**
+ * Starts display refresh routine
+ */
+void ClockDisplay::begin(){
+    last_refresh_micros = 0;
+    // Disable counter overflow interrupts
+    TIMSK2 &= ~(1 << TOIE2);
+    // Enable Compare Match A interrupts
+    TIMSK2 |= (1 << OCIE2A);
+    // Clear TCCR2A and TCCR2B registers
+    TCCR2A = 0;
+    TCCR2B = 0;
+    // Set CTC mode
+    TCCR2A |= (1 << WGM21);
+    // Set prescaler to 8
+    TCCR2B |= (1 << CS21);
+    // Set value to match for interrupt triggering
+    // Timer 2 counter overflows at 255
+    OCR2A = 255;
+}
+
+// Update interrupts
+ISR(TIMER2_COMPA_vect){
+    unsigned long us = micros();
+    if (ClockDisplay::last_refresh_micros == 0){
+        ClockDisplay::last_refresh_micros = us;
+    }
+    if (us - ClockDisplay::last_refresh_micros > ClockDisplay::REFRESH_DELAY_MICROS){
+        ClockDisplay::update();  // TODO: Consider doing everything here instead of calling function. Context change could cost few microseconds
+        ClockDisplay::last_refresh_micros = us - (us - ClockDisplay::last_refresh_micros - ClockDisplay::REFRESH_DELAY_MICROS);
+    }
+}
+
+
+/**
+TODO:
+ * Change "update()" meaning to mean "Show next digit in display" instead of "dump all digits in each display"
+ * */

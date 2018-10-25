@@ -13,7 +13,6 @@ unsigned long baud_rate = 9600;
 ClockDisplay display(4, 5, 6);
 BTConnection bt_connection(2, 3, baud_rate);
 
-
 bool parseCommand(char *command){
     // get pretty time
     if (strcmp(command, "TIME") == 0) {
@@ -128,12 +127,3 @@ void loop(){
     display.update();  // TODO: Update in non invasive timer interrupt
     delay(100);
 }
-
-/**
-TODO: Uncouple stuff:
- - Decide if clock functionality will be take by ClockDisplay
-   * Si se administra el tiempo desde archivo principal se independiza el display de la clase Time
-   * Se puede entregar al reloj los valores que se quiere que despliegue, de vez en cuando. El display se debe actualizar solo
-   *
-
-*/

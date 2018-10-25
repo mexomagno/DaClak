@@ -39,6 +39,8 @@ private:
     void putTime();
     void putText();
     bool checkTextRotation();
+    static void charToSegments(char, unsigned char &, unsigned char &);
+    void updateSegment(unsigned char, unsigned char);
 };
 
 #endif //DACLAK_CLOCKDISPLAY_H

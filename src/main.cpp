@@ -8,10 +8,36 @@
 #include <ClockDisplay.h>
 #include <BTConnection.h>
 
+
+void segmentsTest(unsigned char input_pin, unsigned char shift_pin, unsigned char latch_pin, int delay_ms){
+    pinMode(input_pin, OUTPUT);
+    pinMode(shift_pin, OUTPUT);
+    pinMode(latch_pin, OUTPUT);
+    int c = 0;
+    while (true){
+        for (char i = 0; i < 16; i++){
+            digitalWrite(input_pin, i == c);
+            delay(1);
+            digitalWrite(shift_pin, HIGH);
+            delay(1);
+            digitalWrite(shift_pin, LOW);
+            delay(1);
+        }
+        c = (c+1)%14;
+        digitalWrite(latch_pin, HIGH);
+        delay(1);
+        digitalWrite(latch_pin, LOW);
+        delay(1);
+        delay(delay_ms);
+    }
+}
+
+
 double tz_offset = 0;
 unsigned long baud_rate = 9600;
 ClockDisplay display(4, 5, 6);
 BTConnection bt_connection(2, 3, baud_rate);
+
 
 bool parseCommand(char *command){
     // get pretty time
@@ -112,6 +138,7 @@ bool parseCommand(char *command){
     return false;
 }
 
+
 void setup(){
     // Start serial for debugging
     Serial.begin(baud_rate);
@@ -120,10 +147,11 @@ void setup(){
     bt_connection.begin();
     Serial.print("Started BT module. Baud Rate: ");
     Serial.println(baud_rate);
+//    display.begin();
 }
 
 void loop(){
     bt_connection.listen(&parseCommand);
-//    display.update();  // TODO: Update in non invasive timer interrupt
+    ClockDisplay::update();  // TODO: Update in non invasive timer interrupt
     delay(100);
 }

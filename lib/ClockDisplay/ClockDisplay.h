@@ -22,6 +22,9 @@ public:
     void setTzOffset(double);
     void setTextDelay(unsigned int);
     void setDateDelay(unsigned int);
+    static const unsigned long REFRESH_DELAY_MICROS = 100000;
+    static void update();
+    static unsigned long last_refresh_micros;
 private:
     static unsigned char input_pin;
     static unsigned char shift_pin;
@@ -37,15 +40,12 @@ private:
     static unsigned int TEXT_SCROLL_DELAY;
     static const unsigned int DEFAULT_DATE_DELAY = 2000;
     static unsigned int DATE_DELAY;
-    static const unsigned int REFRESH_DELAY_MICROS = 100000;
-    static unsigned long last_refresh_micros;
     static void putDate();
     static void putTime();
     static void putText();
     static bool checkTextRotation();
     static void charToSegments(char, unsigned char &, unsigned char &);
     static void updateSegment(unsigned char, unsigned char);
-    static void update();
 };
 
 #endif //DACLAK_CLOCKDISPLAY_H

@@ -20,6 +20,7 @@ char ClockDisplay::displayed_digits[N_DIGITS+1];
 char ClockDisplay::text_to_show[256];
 //unsigned long ClockDisplay::last_refresh_micros = 0;
 
+// TODO: PROVIDE TIDIER WAY OF SPECIFYING SELECTOR PORTS. FOR NOW, ARDUINO'S PORTB IS HARDCODED
 
 ClockDisplay::ClockDisplay(unsigned char input_p, unsigned char shift_p, unsigned char latch_p){
     input_pin = input_p;
@@ -31,6 +32,11 @@ ClockDisplay::ClockDisplay(unsigned char input_p, unsigned char shift_p, unsigne
     pinMode(latch_pin, OUTPUT);
     strcpy(displayed_digits, "000000");
     strcpy(text_to_show, "");
+
+    // TODO: unhardcode the following mess:
+    // Setup PORTB output
+    DDRB = DDRB | B00111111;
+    PORTB = 0;
 }
 
 void ClockDisplay::setTzOffset(double new_offset) {
@@ -425,7 +431,7 @@ ISR(TIMER2_COMPA_vect){
 }*/
 
 
-char index = 5;
+char index = 0;
 
 /**
  * Draws current digits into the display
@@ -469,11 +475,13 @@ void ClockDisplay::update() {
     else
         bitClear(part2, 1);
 
-//    index = (index + 1)%N_DIGITS;
+    // Select output
+//    PORTB = index == 0 ? B00000001 : PORTB << 1;
+    PORTB = 0; bitSet(PORTB, index);
+
+    index = (index + 1)%N_DIGITS;
     updateSegment(part1, part2);
     // Dots
-
-
 }
 
 

@@ -12,6 +12,8 @@ bool ClockDisplay::is_showing_text = false;
 bool ClockDisplay::is_showing_date = false;
 unsigned long ClockDisplay::last_text_millis;
 unsigned long ClockDisplay::date_millis;
+unsigned long ClockDisplay::last_dots_change = millis();
+unsigned char ClockDisplay::last_second = second();
 unsigned int ClockDisplay::TEXT_SCROLL_DELAY = DEFAULT_TEXT_SCROLL_DELAY;
 unsigned int ClockDisplay::DATE_DELAY = DEFAULT_DATE_DELAY;
 char ClockDisplay::displayed_digits[N_DIGITS+1];
@@ -72,48 +74,13 @@ void ClockDisplay::showText(char text[]) {
     is_showing_date = false;
 }
 
-
-
-/**
- * Draws current digits into the display
- */
-void ClockDisplay::update() {
-    // Check if text is being displayed yet
-    if (ClockDisplay::checkTextRotation()){
-        // Text still being displayed, stop updating
-    } else if (ClockDisplay::is_showing_date){ // Check if is showing date
-        unsigned long now = millis();
-        if (date_millis == 0)
-            date_millis = now;
-        if (now - date_millis < DATE_DELAY){
-            // Date still must be shown
-            //date_millis = now - (now - date_millis - DATE_DELAY);
-            putDate();
-        } else {
-            // Stop showing date
-            is_showing_date = false;
-        }
-    } else {
-        putTime();
-    }
-    // TODO: Draw with delay
-    // Display current digits
-//    for (unsigned int i=0; i < strlen(displayed_digits); i++){
-//        char st [30]; sprintf(st, "%c ", displayed_digits[i]);
-//        Serial.print(st);
-//    }
-//    Serial.println();
-    unsigned char part1, part2;
-    charToSegments(displayed_digits[strlen(displayed_digits) - 1], part1, part2);
-    updateSegment(part1, part2);
-}
-
 void ClockDisplay::putTime() {
     time_t t_now = now() + (time_t)(3600*tz_offset);
     // Time to digits
     char str_time[7];sprintf(str_time, "%02d%02d%02d", hour(t_now), minute(t_now), second(t_now));
-    // Set digits and draw
+    // Set digits
     strcpy(displayed_digits, str_time);
+
 }
 
 void ClockDisplay::putDate() {
@@ -141,10 +108,9 @@ void ClockDisplay::putText(){
  * Checks if text must be rotated, and does it.
  * @return true if text is still displayed, false otherwise
  */
-bool ClockDisplay::checkTextRotation() {
+bool ClockDisplay::checkTextRotation(unsigned long now) {
     if (!ClockDisplay::is_showing_text)
         return false;
-    unsigned long now = millis();
     if (last_text_millis == 0) {
         last_text_millis = now;
     }
@@ -405,8 +371,6 @@ void ClockDisplay::charToSegments(char c, unsigned char &out1, unsigned char &ou
 //
 //}
 
-
-
 void ClockDisplay::updateSegment(unsigned char part1, unsigned char part2) {
     // TODO: Update each segment separately
     for (char p = 1; p <= 2; p++){
@@ -459,6 +423,58 @@ ISR(TIMER2_COMPA_vect){
         ClockDisplay::last_refresh_micros = us - (us - ClockDisplay::last_refresh_micros - ClockDisplay::REFRESH_DELAY_MICROS);
     }
 }*/
+
+
+char index = 5;
+
+/**
+ * Draws current digits into the display
+ */
+void ClockDisplay::update() {
+    unsigned long current_millis = millis(); // TODO: use micros()
+    // Check if text is being displayed yet
+    if (ClockDisplay::checkTextRotation(current_millis)){
+        // Text still being displayed, stop updating
+    } else if (ClockDisplay::is_showing_date){ // Check if is showing date
+        if (date_millis == 0)
+            date_millis = current_millis;
+        if (current_millis - date_millis < DATE_DELAY){
+            // Date still must be shown
+            //date_millis = current_millis - (current_millis - date_millis - DATE_DELAY);
+            putDate();
+        } else {
+            // Stop showing date
+            is_showing_date = false;
+        }
+    } else {
+        putTime();
+    }
+    // TODO: Draw with delay
+    // Display current digits
+//    for (unsigned int i=0; i < strlen(displayed_digits); i++){
+//        char st [30]; sprintf(st, "%c ", displayed_digits[i]);
+//        Serial.print(st);
+//    }
+//    Serial.println();
+    unsigned char part1, part2;
+    charToSegments(displayed_digits[index], part1, part2);
+    // Check dots status
+    if (second() != last_second){
+        last_second = second();
+        last_dots_change = current_millis;
+    }
+    // show dots
+    if (current_millis - last_dots_change < DOTS_DELAY && !is_showing_text && !is_showing_date)
+        bitSet(part2, 1);
+    else
+        bitClear(part2, 1);
+
+//    index = (index + 1)%N_DIGITS;
+    updateSegment(part1, part2);
+    // Dots
+
+
+}
 
 
 

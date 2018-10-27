@@ -23,7 +23,7 @@ public:
     void setTextDelay(unsigned int);
     void setDateDelay(unsigned int);
 //    static const unsigned long REFRESH_DELAY_MICROS = 100000;
-    static void update();
+    void update();
 //    static unsigned long last_refresh_micros;
 private:
     static unsigned char input_pin;
@@ -36,6 +36,9 @@ private:
     static char text_to_show[256];  // Text to display
     static unsigned long last_text_millis;
     static unsigned long date_millis;
+    static unsigned long last_dots_change;
+    static unsigned char last_second;
+    static const unsigned int DOTS_DELAY = 500;
     static const unsigned int DEFAULT_TEXT_SCROLL_DELAY = 300;
     static unsigned int TEXT_SCROLL_DELAY;
     static const unsigned int DEFAULT_DATE_DELAY = 2000;
@@ -43,7 +46,7 @@ private:
     static void putDate();
     static void putTime();
     static void putText();
-    static bool checkTextRotation();
+    static bool checkTextRotation(unsigned long);
     static void charToSegments(char, unsigned char &, unsigned char &);
     static void updateSegment(unsigned char, unsigned char);
 };

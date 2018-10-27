@@ -152,6 +152,6 @@ void setup(){
 
 void loop(){
     bt_connection.listen(&parseCommand);
-    ClockDisplay::update();  // TODO: Update in non invasive timer interrupt
-    delay(100);
+    display.update();  // TODO: Update in non invasive timer interrupt
+    delay(1);
 }

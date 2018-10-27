@@ -22,9 +22,9 @@ public:
     void setTzOffset(double);
     void setTextDelay(unsigned int);
     void setDateDelay(unsigned int);
-    static const unsigned long REFRESH_DELAY_MICROS = 100000;
+//    static const unsigned long REFRESH_DELAY_MICROS = 100000;
     static void update();
-    static unsigned long last_refresh_micros;
+//    static unsigned long last_refresh_micros;
 private:
     static unsigned char input_pin;
     static unsigned char shift_pin;

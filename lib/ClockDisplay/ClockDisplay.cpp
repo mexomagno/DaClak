@@ -16,7 +16,7 @@ unsigned int ClockDisplay::TEXT_SCROLL_DELAY = DEFAULT_TEXT_SCROLL_DELAY;
 unsigned int ClockDisplay::DATE_DELAY = DEFAULT_DATE_DELAY;
 char ClockDisplay::displayed_digits[N_DIGITS+1];
 char ClockDisplay::text_to_show[256];
-unsigned long ClockDisplay::last_refresh_micros = 0;
+//unsigned long ClockDisplay::last_refresh_micros = 0;
 
 
 ClockDisplay::ClockDisplay(unsigned char input_p, unsigned char shift_p, unsigned char latch_p){
@@ -385,6 +385,15 @@ void ClockDisplay::charToSegments(char c, unsigned char &out1, unsigned char &ou
             out1 = B00000011;
             out2 = B11111100;
             return;
+        case ' ':
+            out1 = B00000000;
+            out2 = B00000000;
+            return;
+        case ',':
+        case '.':
+            out1 = B00000000;
+            out2 = B00010000;
+            return;
         default:
             out1 = B00000011;
             out2 = B11111100;
@@ -418,7 +427,10 @@ void ClockDisplay::updateSegment(unsigned char part1, unsigned char part2) {
 
 /**
  * Starts display refresh routine
+ *
+ * USING THIS IS DISCOURAGED AS IT MESSES UP TIME ACCURACY
  */
+/*
 void ClockDisplay::begin(){
     // Disable counter overflow interrupts
     TIMSK2 &= ~(1 << TOIE2);
@@ -446,7 +458,7 @@ ISR(TIMER2_COMPA_vect){
         ClockDisplay::update();  // TODO: Consider doing everything here instead of calling function. Context change could cost few microseconds
         ClockDisplay::last_refresh_micros = us - (us - ClockDisplay::last_refresh_micros - ClockDisplay::REFRESH_DELAY_MICROS);
     }
-}
+}*/
 
 
 

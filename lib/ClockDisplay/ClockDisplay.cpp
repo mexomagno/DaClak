@@ -21,6 +21,15 @@ char ClockDisplay::text_to_show[256];
 //unsigned long ClockDisplay::last_refresh_micros = 0;
 
 // TODO: PROVIDE TIDIER WAY OF SPECIFYING SELECTOR PORTS. FOR NOW, ARDUINO'S PORTB IS HARDCODED
+void digitalWriteFast(unsigned char pin, bool val){
+    uint8_t *port = &PORTD;
+    if (pin >= 8)
+        port = &PORTB;
+    if (val)
+        bitSet(*port, pin%8);
+    else
+        bitClear(*port, pin%8);
+}
 
 ClockDisplay::ClockDisplay(unsigned char input_p, unsigned char shift_p, unsigned char latch_p){
     input_pin = input_p;
@@ -275,7 +284,7 @@ void ClockDisplay::charToSegments(char c, unsigned char &out1, unsigned char &ou
         case 'N':
         case 'n':
             out1 = B01101100;
-            out2 = B10100000;
+            out2 = B10000100;
             return;
         case 'O':
         case 'o':
@@ -381,17 +390,17 @@ void ClockDisplay::updateSegment(unsigned char part1, unsigned char part2) {
     // TODO: Update each segment separately
     for (char p = 1; p <= 2; p++){
         for (unsigned char i = 0; i < 8; i++){
-            digitalWrite(input_pin, bitRead(p == 1 ? part1 : part2, 7-i));
+            digitalWriteFast(input_pin, bitRead(p == 1 ? part1 : part2, 7-i));
             NOP;
-            digitalWrite(shift_pin, HIGH);
+            digitalWriteFast(shift_pin, HIGH);
             NOP;
-            digitalWrite(shift_pin, LOW);
+            digitalWriteFast(shift_pin, LOW);
             NOP;
         }
     }
-    digitalWrite(latch_pin, HIGH);
+    digitalWriteFast(latch_pin, HIGH);
     NOP;
-    digitalWrite(latch_pin, LOW);
+    digitalWriteFast(latch_pin, LOW);
     NOP;
 }
 
@@ -437,7 +446,7 @@ char index = 0;
  * Draws current digits into the display
  */
 void ClockDisplay::update() {
-    unsigned long current_millis = millis(); // TODO: use micros()
+    unsigned long current_millis = micros()/1000;
     // Check if text is being displayed yet
     if (ClockDisplay::checkTextRotation(current_millis)){
         // Text still being displayed, stop updating
@@ -479,14 +488,9 @@ void ClockDisplay::update() {
 //    PORTB = index == 0 ? B00000001 : PORTB << 1;
     PORTB = 0; bitSet(PORTB, index);
 
+    if (index == N_DIGITS -1)
+        updateSegment(part1, part2);
+    else
+        updateSegment(B00000000, B00000000);
     index = (index + 1)%N_DIGITS;
-    updateSegment(part1, part2);
-    // Dots
 }
-
-
-
-/**
-TODO:
- * Change "update()" meaning to mean "Show next digit in display" instead of "dump all digits in each display"
- * */

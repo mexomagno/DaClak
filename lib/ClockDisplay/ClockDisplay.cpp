@@ -375,6 +375,30 @@ void ClockDisplay::charToSegments(char c, unsigned char &out1, unsigned char &ou
             out1 = B00000000;
             out2 = B00010000;
             return;
+        case 1:
+            out1 = B10000000;
+            out2 = B00000000;
+            return;
+        case 2:
+            out1 = B01000000;
+            out2 = B00000000;
+            return;
+        case 3:
+            out1 = B00100000;
+            out2 = B00000000;
+            return;
+        case 4:
+            out1 = B00010000;
+            out2 = B00000000;
+            return;
+        case 5:
+            out1 = B00001000;
+            out2 = B00000000;
+            return;
+        case 6:
+            out1 = B00000100;
+            out2 = B00000000;
+            return;
         default:
             out1 = B00000011;
             out2 = B11111100;
@@ -386,18 +410,26 @@ void ClockDisplay::charToSegments(char c, unsigned char &out1, unsigned char &ou
 //
 //}
 
+/**
+ * Using the shift registers, turns segments on an off according to part1 and part2
+ * @param part1: First 8 segment parts (A to H)
+ * @param part2: Last 6 segments + dots (I to N, dots)
+ */
 void ClockDisplay::updateSegment(unsigned char part1, unsigned char part2) {
     // TODO: Update each segment separately
     for (char p = 1; p <= 2; p++){
         for (unsigned char i = 0; i < 8; i++){
+            // Put data in serial input
             digitalWriteFast(input_pin, bitRead(p == 1 ? part1 : part2, 7-i));
             NOP;
+            // Shift to right
             digitalWriteFast(shift_pin, HIGH);
             NOP;
             digitalWriteFast(shift_pin, LOW);
             NOP;
         }
     }
+    // Set values on shift register outputs
     digitalWriteFast(latch_pin, HIGH);
     NOP;
     digitalWriteFast(latch_pin, LOW);
@@ -462,15 +494,10 @@ void ClockDisplay::update() {
             is_showing_date = false;
         }
     } else {
-        putTime();
+//        putTime();
+        strcpy(displayed_digits, "01234*"); // TODO DELETE
     }
     // TODO: Draw with delay
-    // Display current digits
-//    for (unsigned int i=0; i < strlen(displayed_digits); i++){
-//        char st [30]; sprintf(st, "%c ", displayed_digits[i]);
-//        Serial.print(st);
-//    }
-//    Serial.println();
     unsigned char part1, part2;
     charToSegments(displayed_digits[index], part1, part2);
     // Check dots status
@@ -483,14 +510,12 @@ void ClockDisplay::update() {
         bitSet(part2, 1);
     else
         bitClear(part2, 1);
-
-    // Select output
-//    PORTB = index == 0 ? B00000001 : PORTB << 1;
-    PORTB = 0; bitSet(PORTB, index);
-
-    if (index == N_DIGITS -1)
-        updateSegment(part1, part2);
-    else
-        updateSegment(B00000000, B00000000);
+    // Turn off previous digit
+    bitClear(PORTB, (index + N_DIGITS - 1)%N_DIGITS);
+    // Update new values
+    updateSegment(part1, part2);
+    // Turn on current digit
+    bitSet(PORTB, index);
+    // Prepare for next iteration
     index = (index + 1)%N_DIGITS;
 }

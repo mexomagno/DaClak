@@ -494,8 +494,7 @@ void ClockDisplay::update() {
             is_showing_date = false;
         }
     } else {
-//        putTime();
-        strcpy(displayed_digits, "01234*"); // TODO DELETE
+        putTime();
     }
     // TODO: Draw with delay
     unsigned char part1, part2;

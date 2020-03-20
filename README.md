@@ -17,7 +17,17 @@ I was tidying up my bedroom when I noticed lots of electronics stuff laying arou
   * Display a message
   * Message scroll settings
 
-## Main parts
+
+## Setup and Usage
+
+### COMING SOON
+
+## Directory structure
+
+This project was started as a [PlatformIO](https://platformio.org/install) arduino project, which defines the current folder structure and compiling settings.
+
+
+## How?
 
 ### The Display
 

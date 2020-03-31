@@ -3,7 +3,7 @@
 //
 
 #include "ClockDisplay.h"
-#define NOP __asm__ __volatile__ ("nop\n\t")  // delay 62.5ns on a 16MHz AtMega
+#define NOP __asm__ __volatile__("nop\n\t")  // delay 62.5ns on a 16MHz AtMega
 unsigned char ClockDisplay::input_pin;
 unsigned char ClockDisplay::shift_pin;
 unsigned char ClockDisplay::latch_pin;
@@ -16,22 +16,22 @@ unsigned long ClockDisplay::last_dots_change = millis();
 unsigned char ClockDisplay::last_second = second();
 unsigned int ClockDisplay::TEXT_SCROLL_DELAY = DEFAULT_TEXT_SCROLL_DELAY;
 unsigned int ClockDisplay::DATE_DELAY = DEFAULT_DATE_DELAY;
-char ClockDisplay::displayed_digits[N_DIGITS+1];
+char ClockDisplay::displayed_digits[N_DIGITS + 1];
 char ClockDisplay::text_to_show[256];
 //unsigned long ClockDisplay::last_refresh_micros = 0;
 
 // TODO: PROVIDE TIDIER WAY OF SPECIFYING SELECTOR PORTS. FOR NOW, ARDUINO'S PORTB IS HARDCODED
-void digitalWriteFast(unsigned char pin, bool val){
+void digitalWriteFast(unsigned char pin, bool val) {
     uint8_t *port = &PORTD;
     if (pin >= 8)
         port = &PORTB;
     if (val)
-        bitSet(*port, pin%8);
+        bitSet(*port, pin % 8);
     else
-        bitClear(*port, pin%8);
+        bitClear(*port, pin % 8);
 }
 
-ClockDisplay::ClockDisplay(unsigned char input_p, unsigned char shift_p, unsigned char latch_p){
+ClockDisplay::ClockDisplay(unsigned char input_p, unsigned char shift_p, unsigned char latch_p) {
     input_pin = input_p;
     shift_pin = shift_p;
     latch_pin = latch_p;
@@ -56,7 +56,7 @@ void ClockDisplay::setTextDelay(unsigned int new_delay) {
     TEXT_SCROLL_DELAY = new_delay;
 }
 
-void ClockDisplay::setDateDelay(unsigned int new_delay){
+void ClockDisplay::setDateDelay(unsigned int new_delay) {
     DATE_DELAY = new_delay;
 }
 
@@ -76,7 +76,7 @@ void ClockDisplay::showDate() {
 void ClockDisplay::showText(char text[]) {
     // Add pading spaces
     char spaces[N_DIGITS + 1];
-    for (unsigned char i = 0; i < N_DIGITS; i++){
+    for (unsigned char i = 0; i < N_DIGITS; i++) {
         spaces[i] = ' ';
     }
     spaces[N_DIGITS] = '\0';
@@ -90,28 +90,29 @@ void ClockDisplay::showText(char text[]) {
 }
 
 void ClockDisplay::putTime() {
-    time_t t_now = now() + (time_t)(3600*tz_offset);
+    time_t t_now = now() + (time_t)(3600 * tz_offset);
     // Time to digits
-    char str_time[7];sprintf(str_time, "%02d%02d%02d", hour(t_now), minute(t_now), second(t_now));
+    char str_time[7];
+    sprintf(str_time, "%02d%02d%02d", hour(t_now), minute(t_now), second(t_now));
     // Set digits
     strcpy(displayed_digits, str_time);
-
 }
 
 void ClockDisplay::putDate() {
-    time_t t_now = now() + (time_t)(3600*tz_offset);
+    time_t t_now = now() + (time_t)(3600 * tz_offset);
     // Time to digits
-    char str_date[7];sprintf(str_date,"%02d%02d%02d", day(t_now), month(t_now), year(t_now)%1000);
+    char str_date[7];
+    sprintf(str_date, "%02d%02d%02d", day(t_now), month(t_now), year(t_now) % 1000);
     strcpy(displayed_digits, str_date);
 }
 
-void ClockDisplay::putText(){
-    for (unsigned char i = 0; i < N_DIGITS; i++){
+void ClockDisplay::putText() {
+    for (unsigned char i = 0; i < N_DIGITS; i++) {
         if (text_to_show[i] != '\0')
             displayed_digits[i] = text_to_show[i];
         else {
             // Fill with spaces
-            for (unsigned char j = i; j < N_DIGITS ; j++){
+            for (unsigned char j = i; j < N_DIGITS; j++) {
                 displayed_digits[j] = ' ';
             }
             break;
@@ -130,15 +131,15 @@ bool ClockDisplay::checkTextRotation(unsigned long now) {
         last_text_millis = now;
     }
     // Check if text should be rotated
-    if (now - last_text_millis > TEXT_SCROLL_DELAY){
+    if (now - last_text_millis > TEXT_SCROLL_DELAY) {
         last_text_millis = now - (now - last_text_millis - TEXT_SCROLL_DELAY);
         // Rotate chars
-        for (unsigned int i = 0; i < strlen(text_to_show); i++){
-            text_to_show[i] = text_to_show [i+1];
+        for (unsigned int i = 0; i < strlen(text_to_show); i++) {
+            text_to_show[i] = text_to_show[i + 1];
             if (text_to_show[i] == '\0')
                 break;
         }
-        if (strcmp(text_to_show, "") == 0){
+        if (strcmp(text_to_show, "") == 0) {
             // Finished text scroll
             is_showing_text = false;
         }
@@ -175,10 +176,12 @@ bool ClockDisplay::checkTextRotation(unsigned long now) {
  * @return
  */
 void ClockDisplay::charToSegments(char c, unsigned char &out1, unsigned char &out2) {
-    switch(c){
+    switch (c) {
         case '0':
             out1 = B11111100;
             out2 = B00000000;
+            // out1 = B11111111;
+            // out2 = B11111100;
             return;
         case '1':
             out1 = B01100000;
@@ -417,10 +420,10 @@ void ClockDisplay::charToSegments(char c, unsigned char &out1, unsigned char &ou
  */
 void ClockDisplay::updateSegment(unsigned char part1, unsigned char part2) {
     // TODO: Update each segment separately
-    for (char p = 1; p <= 2; p++){
-        for (unsigned char i = 0; i < 8; i++){
+    for (char p = 1; p <= 2; p++) {
+        for (unsigned char i = 0; i < 8; i++) {
             // Put data in serial input
-            digitalWriteFast(input_pin, bitRead(p == 1 ? part1 : part2, 7-i));
+            digitalWriteFast(input_pin, bitRead(p == 1 ? part1 : part2, 7 - i));
             NOP;
             // Shift to right
             digitalWriteFast(shift_pin, HIGH);
@@ -471,21 +474,20 @@ ISR(TIMER2_COMPA_vect){
     }
 }*/
 
-
 char index = 0;
 
 /**
  * Draws current digits into the display
  */
 void ClockDisplay::update() {
-    unsigned long current_millis = micros()/1000;
+    unsigned long current_millis = micros() / 1000;
     // Check if text is being displayed yet
-    if (ClockDisplay::checkTextRotation(current_millis)){
+    if (ClockDisplay::checkTextRotation(current_millis)) {
         // Text still being displayed, stop updating
-    } else if (ClockDisplay::is_showing_date){ // Check if is showing date
+    } else if (ClockDisplay::is_showing_date) {  // Check if is showing date
         if (date_millis == 0)
             date_millis = current_millis;
-        if (current_millis - date_millis < DATE_DELAY){
+        if (current_millis - date_millis < DATE_DELAY) {
             // Date still must be shown
             //date_millis = current_millis - (current_millis - date_millis - DATE_DELAY);
             putDate();
@@ -500,7 +502,7 @@ void ClockDisplay::update() {
     unsigned char part1, part2;
     charToSegments(displayed_digits[index], part1, part2);
     // Check dots status
-    if (second() != last_second){
+    if (second() != last_second) {
         last_second = second();
         last_dots_change = current_millis;
     }
@@ -510,11 +512,11 @@ void ClockDisplay::update() {
     else
         bitClear(part2, 1);
     // Turn off previous digit
-    bitClear(PORTB, (index + N_DIGITS - 1)%N_DIGITS);
+    bitClear(PORTB, (index + N_DIGITS - 1) % N_DIGITS);
     // Update new values
     updateSegment(part1, part2);
     // Turn on current digit
     bitSet(PORTB, index);
     // Prepare for next iteration
-    index = (index + 1)%N_DIGITS;
+    index = (index + 1) % N_DIGITS;
 }

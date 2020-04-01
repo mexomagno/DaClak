@@ -31,6 +31,36 @@ void digitalWriteFast(unsigned char pin, bool val) {
         bitClear(*port, pin % 8);
 }
 
+/**
+ * Reorder segments according to real pcb connections
+ * 
+ * Input order is
+ * char1: ABCDEFGH
+ * char2: IJKLMNXX
+ * 
+ * Actual PCB order is: 
+ * char1: AFBKJIG-
+ * char2: HLMNCEDX
+ * 
+ * We do not worry about X as it is set by the seconds blinker routine
+ */
+void reorderSegments(unsigned char &char1, unsigned char &char2) {
+    unsigned char newchar1 = 0;
+    unsigned char newchar2 = 0;
+    unsigned int all = char2 | char1 << 8;
+
+    unsigned char b1_indexes[] = {0 /*A*/, 5 /*F*/, 1 /*B*/, 8 + 2 /*K*/, 8 + 1 /*J*/, 8 + 0 /*I*/, 6 /*G*/};
+    unsigned char b2_indexes[] = {7 /*H*/, 8 + 3 /*L*/, 8 + 4 /*M*/, 8 + 5 /*N*/, 2 /*C*/, 4 /*E*/, 3 /*D*/};
+    for (int digit_index = 0; digit_index < sizeof(b1_indexes) / sizeof(unsigned char); digit_index++) {
+        // first byte
+        newchar1 |= bitRead(all, 15 - b1_indexes[digit_index]) << (7 - digit_index);
+        // second byte
+        newchar2 |= bitRead(all, 15 - b2_indexes[digit_index]) << (7 - digit_index);
+    }
+    char1 = newchar1;
+    char2 = newchar2;
+}
+
 ClockDisplay::ClockDisplay(unsigned char input_p, unsigned char shift_p, unsigned char latch_p) {
     input_pin = input_p;
     shift_pin = shift_p;
@@ -182,236 +212,233 @@ void ClockDisplay::charToSegments(char c, unsigned char &out1, unsigned char &ou
             out2 = B00000000;
             // out1 = B11111111;
             // out2 = B11111100;
-            return;
+            break;
         case '1':
             out1 = B01100000;
             out2 = B00000000;
-            return;
+            break;
         case '2':
             out1 = B11011011;
             out2 = B00000000;
-            return;
+            break;
         case '3':
             out1 = B11110011;
             out2 = B00000000;
-            return;
+            break;
         case '4':
             out1 = B01100111;
             out2 = B00000000;
-            return;
+            break;
         case '5':
             out1 = B10110111;
             out2 = B00000000;
-            return;
+            break;
         case '6':
             out1 = B10111111;
             out2 = B00000000;
-            return;
+            break;
         case '7':
             out1 = B11100000;
             out2 = B00000000;
-            return;
+            break;
         case '8':
             out1 = B11111111;
             out2 = B00000000;
-            return;
+            break;
         case '9':
             out1 = B11110111;
             out2 = B00000000;
-            return;
+            break;
         case 'A':
         case 'a':
             out1 = B11101111;
             out2 = B00000000;
-            return;
+            break;
         case 'B':
         case 'b':
             out1 = B11110001;
             out2 = B01001000;
-            return;
+            break;
         case 'C':
         case 'c':
             out1 = B10011100;
             out2 = B00000000;
-            return;
+            break;
         case 'D':
         case 'd':
             out1 = B11110001;
             out2 = B01001000;
-            return;
+            break;
         case 'E':
         case 'e':
             out1 = B10011111;
             out2 = B00000000;
-            return;
+            break;
         case 'F':
         case 'f':
             out1 = B10001111;
             out2 = B00000000;
-            return;
+            break;
         case 'G':
         case 'g':
             out1 = B10111101;
             out2 = B00000000;
-            return;
+            break;
         case 'H':
         case 'h':
             out1 = B01101111;
             out2 = B00000000;
-            return;
+            break;
         case 'I':
         case 'i':
             out1 = B10010000;
             out2 = B01001000;
-            return;
+            break;
         case 'J':
         case 'j':
             out1 = B01111000;
             out2 = B00000000;
-            return;
+            break;
         case 'K':
         case 'k':
             out1 = B00001110;
             out2 = B00100100;
-            return;
+            break;
         case 'L':
         case 'l':
             out1 = B00011100;
             out2 = B00000000;
-            return;
+            break;
         case 'M':
         case 'm':
             out1 = B01101100;
             out2 = B10100000;
-            return;
+            break;
         case 'N':
         case 'n':
             out1 = B01101100;
             out2 = B10000100;
-            return;
+            break;
         case 'O':
         case 'o':
             out1 = B11111100;
             out2 = B00000000;
-            return;
+            break;
         case 'P':
         case 'p':
             out1 = B11001111;
             out2 = B00000000;
-            return;
+            break;
         case 'Q':
         case 'q':
             out1 = B11111100;
             out2 = B00000100;
-            return;
+            break;
         case 'R':
         case 'r':
             out1 = B11001111;
             out2 = B00000100;
-            return;
+            break;
         case 'S':
         case 's':
             out1 = B10110111;
             out2 = B00000000;
-            return;
+            break;
         case 'T':
         case 't':
             out1 = B10000000;
             out2 = B01001000;
-            return;
+            break;
         case 'U':
         case 'u':
             out1 = B01111100;
             out2 = B00000000;
-            return;
+            break;
         case 'V':
         case 'v':
             out1 = B00001100;
             out2 = B00110000;
-            return;
+            break;
         case 'W':
         case 'w':
             out1 = B01101100;
             out2 = B00010100;
-            return;
+            break;
         case 'X':
         case 'x':
             out1 = B00000000;
             out2 = B10110100;
-            return;
+            break;
         case 'Y':
         case 'y':
             out1 = B00000000;
             out2 = B10101000;
-            return;
+            break;
         case 'Z':
         case 'z':
             out1 = B10010000;
             out2 = B00110000;
-            return;
+            break;
         case '+':
             out1 = B00000011;
             out2 = B01001000;
-            return;
+            break;
         case '-':
             out1 = B00000011;
             out2 = B00000000;
-            return;
+            break;
         case '/':
             out1 = B00000000;
             out2 = B00110000;
-            return;
+            break;
         case '\\':
             out1 = B00000000;
             out2 = B10000100;
-            return;
+            break;
         case '*':
             out1 = B00000011;
             out2 = B11111100;
-            return;
+            break;
         case ' ':
             out1 = B00000000;
             out2 = B00000000;
-            return;
+            break;
         case ',':
         case '.':
             out1 = B00000000;
             out2 = B00010000;
-            return;
+            break;
         case 1:
             out1 = B10000000;
             out2 = B00000000;
-            return;
+            break;
         case 2:
             out1 = B01000000;
             out2 = B00000000;
-            return;
+            break;
         case 3:
             out1 = B00100000;
             out2 = B00000000;
-            return;
+            break;
         case 4:
             out1 = B00010000;
             out2 = B00000000;
-            return;
+            break;
         case 5:
             out1 = B00001000;
             out2 = B00000000;
-            return;
+            break;
         case 6:
             out1 = B00000100;
             out2 = B00000000;
-            return;
+            break;
         default:
             out1 = B00000011;
             out2 = B11111100;
-            return;
+            break;
     }
+    reorderSegments(out1, out2);
 }
-//
-//void ClockDisplay::displayDigits(){
-//
-//}
 
 /**
  * Using the shift registers, turns segments on an off according to part1 and part2
@@ -508,9 +535,9 @@ void ClockDisplay::update() {
     }
     // show dots
     if (current_millis - last_dots_change < DOTS_DELAY && !is_showing_text && !is_showing_date)
-        bitSet(part2, 1);
+        bitSet(part2, 0);
     else
-        bitClear(part2, 1);
+        bitClear(part2, 0);
     // Turn off previous digit
     bitClear(PORTB, (index + N_DIGITS - 1) % N_DIGITS);
     // Update new values

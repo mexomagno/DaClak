@@ -10,26 +10,27 @@
 #include <Arduino.h>
 #include <Time.h>
 
-class ClockDisplay{
+class ClockDisplay {
     /**
      * Represents the clock display. Provides methods to display internal state
      */
-public:
-    ClockDisplay(unsigned char, unsigned char, unsigned char);
+   public:
+    ClockDisplay(unsigned char, unsigned char, unsigned char, unsigned char[6]);
     void begin();
     void showDate();
-    void showText(char []);
+    void showText(char[]);
     void setTzOffset(double);
     void setTextDelay(unsigned int);
     void setDateDelay(unsigned int);
-//    static const unsigned long REFRESH_DELAY_MICROS = 100000;
+    //    static const unsigned long REFRESH_DELAY_MICROS = 100000;
     void update();
-//    static unsigned long last_refresh_micros;
-private:
+    //    static unsigned long last_refresh_micros;
+   private:
     static unsigned char input_pin;
     static unsigned char shift_pin;
     static unsigned char latch_pin;
-    static char displayed_digits [N_DIGITS+1];  // Digits that should be displayed on next update
+    static unsigned char DIGIT_PINS[6];
+    static char displayed_digits[N_DIGITS + 1];  // Digits that should be displayed on next update
     static bool is_showing_text;
     static bool is_showing_date;
     static double tz_offset;
@@ -51,4 +52,4 @@ private:
     static void updateSegment(unsigned char, unsigned char);
 };
 
-#endif //DACLAK_CLOCKDISPLAY_H
+#endif  //DACLAK_CLOCKDISPLAY_H

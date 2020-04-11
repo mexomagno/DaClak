@@ -7,6 +7,7 @@
 unsigned char ClockDisplay::input_pin;
 unsigned char ClockDisplay::shift_pin;
 unsigned char ClockDisplay::latch_pin;
+unsigned char ClockDisplay::DIGIT_PINS[];
 double ClockDisplay::tz_offset = 0.0;
 bool ClockDisplay::is_showing_text = false;
 bool ClockDisplay::is_showing_date = false;
@@ -61,10 +62,12 @@ void reorderSegments(unsigned char &char1, unsigned char &char2) {
     char2 = newchar2;
 }
 
-ClockDisplay::ClockDisplay(unsigned char input_p, unsigned char shift_p, unsigned char latch_p) {
+ClockDisplay::ClockDisplay(unsigned char input_p, unsigned char shift_p, unsigned char latch_p, unsigned char digit_pins[]) {
     input_pin = input_p;
     shift_pin = shift_p;
     latch_pin = latch_p;
+    for (unsigned char i = 0; i < 6; i++)
+        DIGIT_PINS[i] = digit_pins[i];
     // Enable pins
     pinMode(input_pin, OUTPUT);
     pinMode(shift_pin, OUTPUT);
@@ -539,11 +542,16 @@ void ClockDisplay::update() {
     else
         bitClear(part2, 0);
     // Turn off previous digit
-    bitClear(PORTB, (index + N_DIGITS - 1) % N_DIGITS);
+    digitalWriteFast(DIGIT_PINS[(index + N_DIGITS - 1) % N_DIGITS], 0);
+    // bitClear(PORTB, (index + N_DIGITS - 1) % N_DIGITS);
+
     // Update new values
     updateSegment(part1, part2);
+
     // Turn on current digit
-    bitSet(PORTB, index);
+    digitalWriteFast(DIGIT_PINS[index], 1);
+    // bitSet(PORTB, index);
+
     // Prepare for next iteration
     index = (index + 1) % N_DIGITS;
 }

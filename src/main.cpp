@@ -33,7 +33,8 @@ void segmentsTest(unsigned char input_pin, unsigned char shift_pin, unsigned cha
 
 double tz_offset = 0;
 unsigned long baud_rate = 9600;
-ClockDisplay display(2, 4, 6);
+unsigned char digit_pins[] = {10, 11, 9, 8, 12, 13};
+ClockDisplay display(2, 4, 6, digit_pins);
 BTConnection bt_connection(3, 5, baud_rate);
 
 bool parseCommand(char *command) {
